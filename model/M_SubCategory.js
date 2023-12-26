@@ -1,5 +1,4 @@
-const mongoose = require("mongoose")
-
+const mongoose = require("mongoose");
 
 const Schema = new mongoose.Schema({
   name: { type: String, unique: true },
@@ -7,16 +6,16 @@ const Schema = new mongoose.Schema({
   category: {
     type: mongoose.Schema.ObjectId,
     ref: "category",
-    required:true
+    required: true,
   },
-  image:String
-})
+  image: String,
+});
 
-Schema.post("save", (e) => {
-  if(e.image) e.image = `${process.env.BASE_URL}/subcategory/${e.image}`
-})
-Schema.post("init", (e) => {
-  if(e.image) e.image = `${process.env.BASE_URL}/subcategory/${e.image}`
-})
+// Schema.post("save", (e) => {
+//   if(e.image) e.image = `${process.env.BASE_URL}/subcategory/${e.image}`
+// })
+// Schema.post("init", (e) => {
+//   if(e.image) e.image = `${process.env.BASE_URL}/subcategory/${e.image}`
+// })
 
-module.exports = mongoose.model("subcategory" , Schema)
+module.exports = mongoose.model("subcategory", Schema);
