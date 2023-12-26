@@ -90,7 +90,6 @@ exports.Get = AsyncHandler(async (req, res) => {
     ];
     Query = Query.find(query);
   }
-  console.log(req.query);
 
   const data = await Query;
   res.status(200).json({

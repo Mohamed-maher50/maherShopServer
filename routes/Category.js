@@ -16,9 +16,9 @@ const { protect, allowedTo } = require("../controller/C_auth");
 
 router.get("/", Get);
 router.get("/:id", V_Check_ID, Get_Id);
+router.use("/:IDCate/subcategories", SubCategory);
 router.use(protect, allowedTo("user", "admin", "manger"));
 router.post("/", IMG, Resize, V_Create, Create);
 router.put("/:id", IMG, Resize, V_Check_ID, Update);
 router.delete("/:id", V_Check_ID, Delete);
-router.use("/:IDCate/subcategories", SubCategory);
 module.exports = router;

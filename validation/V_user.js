@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const v_layer = (req, res, next) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
-    return res.status(400).json({ _err: err.array() });
+    return res.status(400).json(err.array());
   }
   next();
 };
@@ -31,10 +31,10 @@ exports.V_Create = [
     .withMessage("password is empty")
     .custom(async (val, { req }) => {
       req.body.password = await bcrypt.hash(val, 12);
-      if (val !== req.body.passwordConfirm)
+      if (val !== req.body.confirmPassword)
         return Promise.reject(new Error("password not Confirm"));
     }),
-  check("passwordConfirm").notEmpty().withMessage("passwordConfirm is empty"),
+  check("confirmPassword").notEmpty().withMessage("confirm Password is empty"),
   v_layer,
 ];
 exports.V_Update = [

@@ -36,33 +36,33 @@ Schema.pre(/^find/, function (next) {
   next();
 });
 
-Schema.post("save", (e) => {
-  if (e.imageCover) {
-    e.imageCover = `${process.env.BASE_URL}/product/${e.imageCover}`;
-  }
+// Schema.post("save", (e) => {
+//   if (e.imageCover) {
+//     e.imageCover = `${process.env.BASE_URL}/product/${e.imageCover}`;
+//   }
 
-  const Imgs = [];
-  if (e.images) {
-    e.images.map((Img) => {
-      let URlImg = `${process.env.BASE_URL}/product/${Img}`;
-      Imgs.push(URlImg);
-    });
-    e.images = Imgs;
-  }
-});
+//   const Imgs = [];
+//   if (e.images) {
+//     e.images.map((Img) => {
+//       let URlImg = `${process.env.BASE_URL}/product/${Img}`;
+//       Imgs.push(URlImg);
+//     });
+//     e.images = Imgs;
+//   }
+// });
 
-Schema.post("init", (e) => {
-  if (e.imageCover) {
-    e.imageCover = `${process.env.BASE_URL}/product/${e.imageCover}`;
-  }
-  const Imgs = [];
-  if (e.images) {
-    e.images.map((Img) => {
-      let URlImg = `${process.env.BASE_URL}/product/${Img}`;
-      Imgs.push(URlImg);
-    });
-    e.images = Imgs;
-  }
-});
+// Schema.post("init", (e) => {
+//   if (e.imageCover) {
+//     e.imageCover = `${process.env.BASE_URL}/product/${e.imageCover}`;
+//   }
+//   const Imgs = [];
+//   if (e.images) {
+//     e.images.map((Img) => {
+//       let URlImg = `${process.env.BASE_URL}/product/${Img}`;
+//       Imgs.push(URlImg);
+//     });
+//     e.images = Imgs;
+//   }
+// });
 
 module.exports = mongoose.model("product", Schema);

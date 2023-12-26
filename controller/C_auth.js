@@ -9,7 +9,6 @@ const nodemailer = require("nodemailer");
 // const sendEmail = require("../util/sendEmail")
 
 exports.signUp = AsyncHandler(async (req, res) => {
-  console.log("herye");
   req.body.name ? (req.body.slug = slugify(req.body.name)) : null;
   const data = await M_User.create(req.body);
   const token = JWT.sign({ id: data._id }, process.env.JWT_SECRET_KEY, {
@@ -113,12 +112,11 @@ exports.ForgetPass = AsyncHandler(async (req, res, next) => {
     .createHash("sha256")
     .update(resetCode)
     .digest("hex");
-  console.log(user);
+
   user.passwordResetCode = hashResetCode;
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   user.resetCodeVerified = false;
 
-  console.log(user);
   await user.save();
 
   // 3)  Send password reset code via email
@@ -126,7 +124,6 @@ exports.ForgetPass = AsyncHandler(async (req, res, next) => {
   try {
     await sendEmail(user.email, message);
   } catch (err) {
-    console.log("err");
     user.passwordResetCode = undefined;
     user.passwordResetExpires = undefined;
     user.resetCodeVerified = undefined;

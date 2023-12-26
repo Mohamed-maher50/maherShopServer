@@ -6,9 +6,9 @@ const AsyncHandler = require("express-async-handler");
 exports.Create = AsyncHandler(async (req, res, next) => {
   const { productId, color } = req.body;
   const product = await M_product.findById(productId);
-
-  let cart = await M_cart.findOne({ user: req.user._id });
-
+  let cart = await M_cart.findOne({ user: req.user._id }).populate(
+    "cartItems.product"
+  );
   // (1) Create cart for logged user
   if (!cart) {
     cart = await M_cart.create({
@@ -19,9 +19,9 @@ exports.Create = AsyncHandler(async (req, res, next) => {
     // (2) product exist in cart , update product quantity
   } else {
     const ProductIndex = cart.cartItems.findIndex(
-      (item) => item.product.toString() === productId && item.color === color
+      (item) =>
+        item.product._id.toString() === productId && item.color === color
     );
-
     if (ProductIndex > -1) {
       cart.cartItems[ProductIndex].quantity += 1;
     } else {
@@ -34,13 +34,11 @@ exports.Create = AsyncHandler(async (req, res, next) => {
   cart.cartItems.forEach((e) => (totalPrice += e.price * e.quantity));
   cart.totalCartPirce = totalPrice;
   cart.totalCartDiscount = undefined;
-  res
-    .status(200)
-    .json({
-      status: "success",
-      data: cart,
-      countProduct: cart.cartItems.length,
-    });
+  res.status(200).json({
+    status: "success",
+    data: cart,
+    countProduct: cart.cartItems.length,
+  });
   await cart.save();
 });
 
@@ -48,26 +46,33 @@ exports.getCart = AsyncHandler(async (req, res, next) => {
   const cart = await M_cart.findOne({ user: req.user._id }).populate({
     path: "cartItems.product",
     select:
-      "description imageCover price  ratingsAverage priceAfterDiscount title",
+      "description imageCover price quantity ratingsAverage priceAfterDiscount title",
   });
+  if (!cart) return next(new Error("not exists cart "));
+
+  let totalPrice = cart.cartItems.reduce((total, current, next) => {
+    return (total += current.quantity * current.price);
+  }, 0);
+
   if (!cart) next(new Error("not exists cart For this id"));
-  res.status(200).json({ data: cart, countProduct: cart.cartItems.length });
   await cart.save();
+  res
+    .status(200)
+    .json({ data: cart, countProduct: cart.cartItems.length, totalPrice });
 });
 
 exports.DeleteOneProduct = AsyncHandler(async (req, res, next) => {
-  const cart = await M_cart.findOneAndUpdate(
+  let cart = await M_cart.findOneAndUpdate(
     { user: req.user._id },
     { $pull: { cartItems: { _id: req.params.id } } },
     { new: true }
-  );
+  ).populate("cartItems.product");
   let totalPrice = 0;
   cart.cartItems.forEach((e) => (totalPrice += e.quantity * e.price));
   cart.totalCartPirce = totalPrice;
-
   if (!cart) next(new Error("not exists cart For this id"));
+  cart = await cart.save();
   res.status(200).json({ data: cart });
-  await cart.save();
 });
 
 exports.DeleteAllCart = AsyncHandler(async (req, res, next) => {
@@ -77,13 +82,13 @@ exports.DeleteAllCart = AsyncHandler(async (req, res, next) => {
 });
 
 exports.UpdateQuantity = AsyncHandler(async (req, res, next) => {
-  const cart = await M_cart.findOne({ user: req.user._id });
-  if (!cart) next(new Error("there is no cart for user"));
-
+  const cart = await M_cart.findOne({ user: req.user._id }).populate(
+    "cartItems.product"
+  );
+  if (!cart) return next(new Error("there is no cart for user"));
   const ItemIndex = cart.cartItems.findIndex(
     (e) => e._id.toString() === req.params.id
   );
-
   if (ItemIndex > -1) {
     const cartItem = cart.cartItems[ItemIndex];
     cartItem.quantity = req.body.quantity;
@@ -96,7 +101,12 @@ exports.UpdateQuantity = AsyncHandler(async (req, res, next) => {
   cart.totalCartPirce = totalPrice;
   cart.totalCartDiscount = totalPrice;
   await cart.save();
-  res.status(200).json({ data: cart, totalCartDiscount, totalPrice });
+
+  res.status(200).json({
+    data: cart,
+    totalCartDiscount: cart.totalCartDiscount,
+    totalPrice,
+  });
 });
 
 // To here
